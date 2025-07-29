@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>PTT - Procurement</title>
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<style>
+  /* ปรับ modal ให้แสดงตรงกลาง */
+  #createModal,
+  #receiptModal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    width: 90%;
+    max-width: 500px;
+  }
+
+  #createModal.active,
+  #receiptModal.active {
+    display: block;
+  }
+
+  #createModal h3,
+  #receiptModal h3 {
+    margin-top: 0;
+    font-size: 18px;
+  }
+
+  #createModal input,
+  #receiptModal input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  #createModal button,
+  #receiptModal button {
+    margin-right: 10px;
+  }
+
+  .btn {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .btn:hover {
+    background-color: #004999;
+  }
+
+  /* สถานะ */
+  .approved {
+    color: green;
+    font-weight: bold;
+  }
+
+  .rejected {
+    color: red;
+    font-weight: bold;
+  }
+
+  /* ตาราง */
+  table button {
+    padding: 4px 8px;
+    margin: 0 2px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  table th,
+  table td {
+    text-align: center;
+  }
+</style>
+<body>
+  <div class="sidebar">
+    <h2>PTT ERP</h2>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="financials.html">Financials</a>
+      <a href="report.html">report</a>
+      <a class="active" href="procurement.html">Inventory</a>
+      
+    </nav>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1> การจัดการสินค้าคงคลัง (Inventory Management)</h1>
+      <div>
+        <button class="btn" onclick="openCreateModal()">+ สร้างรายการ</button>
+      </div>
+    </div>
+
+    <div class="card-container">
+      <div class="card">
+        <h3>Orders This Month</h3>
+        <div class="value">฿ 5,200,000</div>
+      </div>
+      <div class="card">
+        <h3>Vendors</h3>
+        <div class="value">45 ราย</div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <h2>รายการล่าสุด</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>รายการเลขที่ใบเสร็จ</th>
+            <th>ผู้ขาย</th>
+            <th>รายการสินค้า</th>
+            <th>วันที่</th>
+            <th>จำนวน(บาท)</th>
+            <th>สถานะ</th>
+            <th>อนุมัติ</th>
+          </tr>
+        </thead>
+        <tbody id="poTableBody">
+          <!-- รายการจะมาแสดงตรงนี้ -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ใบเสร็จ -->
+    <div id="receiptModal">
+      <h3>ใบเสร็จ</h3>
+      <p id="receiptContent">...</p>
+      <button onclick="closeModal()">ปิด</button>
+    </div>
+
+    <!-- ฟอร์มสร้างรายการ -->
+    <div id="createModal">
+      <h3>สร้างรายการสินค้า</h3>
+      <input type="text" id="poNo" placeholder="PO No.">
+      <input type="text" id="vendor" placeholder="Vendor">
+      <input type="text" id="item" placeholder="Item">
+      <input type="date" id="date">
+      <input type="number" id="amount" placeholder="Amount">
+      <button class="btn" onclick="addPO()">เพิ่ม</button>
+      <button class="btn" onclick="closeCreateModal()">ยกเลิก</button>
+    </div>
+  </div>
+
+<script>
+  let poList = [];
+
+  // โหลดข้อมูลจาก localStorage ตอนเปิดหน้า
+  window.onload = function () {
+    const saved = localStorage.getItem("poList");
+    if (saved) {
+      poList = JSON.parse(saved);
+      poList.forEach(addPOToTable);
+    }
+  };
+
+  function saveToLocalStorage() {
+    localStorage.setItem("poList", JSON.stringify(poList));
+  }
+
+  function addPO() {
+    const poNo = document.getElementById("poNo").value;
+    const vendor = document.getElementById("vendor").value;
+    const item = document.getElementById("item").value;
+    const date = document.getElementById("date").value;
+    const amount = document.getElementById("amount").value;
+
+    if (!poNo || !vendor || !item || !date || !amount) {
+      alert("กรุณากรอกข้อมูลให้ครบ");
+      return;
+    }
+
+    const newPO = {
+      poNo,
+      vendor,
+      item,
+      date,
+      amount,
+      status: "pending"
+    };
+
+    poList.push(newPO);
+    saveToLocalStorage();
+    addPOToTable(newPO);
+    closeCreateModal();
+  }
+
+  function addPOToTable(po) {
+    const tbody = document.getElementById("poTableBody");
+
+    const tr = document.createElement("tr");
+    tr.id = "row-" + po.poNo;
+    tr.innerHTML = `
+      <td>${po.poNo}</td>
+      <td>${po.vendor}</td>
+      <td>${po.item}</td>
+      <td>${po.date}</td>
+      <td>฿ ${parseFloat(po.amount).toLocaleString()}</td>
+      <td id="status-${po.poNo}" class="${po.status === 'approved' ? 'approved' : po.status === 'rejected' ? 'rejected' : ''}">
+        ${po.status === 'approved' ? '✅ อนุมัติแล้ว' : po.status === 'rejected' ? '❌ ไม่อนุมัติ' : 'ยังไม่อนุมัติ'}
+      </td>
+      <td>
+        <button onclick="approveItem('${po.poNo}')">✔️</button>
+        <button onclick="rejectItem('${po.poNo}')">❌</button>
+        <button onclick="createReceipt('${po.poNo}')" id="receipt-${po.poNo}" ${po.status === 'approved' ? '' : 'disabled'}>ใบเสร็จ</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  function approveItem(poId) {
+    const po = poList.find(p => p.poNo === poId);
+    if (po) {
+      po.status = "approved";
+      saveToLocalStorage();
+      document.getElementById('status-' + poId).textContent = '✅ อนุมัติแล้ว';
+      document.getElementById('status-' + poId).className = 'approved';
+      document.getElementById('receipt-' + poId).disabled = false;
+    }
+  }
+
+  function rejectItem(poId) {
+    const po = poList.find(p => p.poNo === poId);
+    if (po) {
+      po.status = "rejected";
+      saveToLocalStorage();
+      document.getElementById('status-' + poId).textContent = '❌ ไม่อนุมัติ';
+      document.getElementById('status-' + poId).className = 'rejected';
+      document.getElementById('receipt-' + poId).disabled = true;
+    }
+  }
+
+  function createReceipt(poId) {
+    const po = poList.find(p => p.poNo === poId);
+    if (po) {
+      const content = `
+        <strong>ใบเสร็จ</strong><br/>
+        เลขที่คำสั่งซื้อ: ${po.poNo}<br/>
+        ผู้ขาย: ${po.vendor}<br/>
+        สินค้า: ${po.item}<br/>
+        วันที่: ${po.date}<br/>
+        จำนวนเงิน: ฿ ${parseFloat(po.amount).toLocaleString()}<br/>
+        สถานะ: ชำระแล้ว
+      `;
+      document.getElementById("receiptContent").innerHTML = content;
+      document.getElementById("receiptModal").classList.add("active");
+    }
+  }
+
+  function closeModal() {
+    document.getElementById("receiptModal").classList.remove("active");
+  }
+
+  function openCreateModal() {
+    document.getElementById("createModal").classList.add("active");
+  }
+
+  function closeCreateModal() {
+    document.getElementById("createModal").classList.remove("active");
+  }
+</script>
+
+</body>
+</html>

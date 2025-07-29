@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="th">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>PTT ERP - Report Module</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css"
+        />
+        
+    </head>
+    <body>
+        <div class="sidebar">
+            <h2> PTT ERP</h2>
+            <nav>
+                
+                <a class="active" href="index.html"> Home</a>
+                <a href="procurement.html">Inventory</a>
+                <a href="financials.html">Financials</a>
+                <a href="report.html">report</a>
+            </nav>
+        </div>
+
+        <div class="main">
+            <div class="header">
+                <h1>Report Module</h1>
+                <button>Export CSV</button>
+            </div>
+
+            <div class="filters">
+                <label for="report-type">Report Type:</label>
+                <select id="report-type" name="report-type">
+                    <option value="purchase">Purchase Report</option>
+                    <option value="inventory">Inventory Report</option>
+                    <option value="finance">Financial Report</option>
+                </select>
+
+                <label for="from-date">From:</label>
+                <input type="date" id="from-date" name="from-date" />
+
+                <label for="to-date">To:</label>
+                <input type="date" id="to-date" name="to-date" />
+
+                <button>Filter</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Report ID</th>
+                        <th>Title</th>
+                        <th>Created By</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>RPT-001</td>
+                        <td>Monthly Purchase Summary</td>
+                        <td>Somchai P.</td>
+                        <td>01/07/2025</td>
+                        <td>Completed</td>
+                    </tr>
+                    <tr>
+                        <td>RPT-002</td>
+                        <td>Inventory Check July</td>
+                        <td>Jintana W.</td>
+                        <td>10/07/2025</td>
+                        <td>In Progress</td>
+                    </tr>
+                    <tr>
+                        <td>RPT-003</td>
+                        <td>Quarterly Financial Overview</td>
+                        <td>Wichai S.</td>
+                        <td>15/07/2025</td>
+                        <td>Pending</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+
+    <script src="./scripts/script.js"></script>
+</html>
