@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Financials - ERP PTT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<style>
+  #addModal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    width: 90%;
+    max-width: 500px;
+  }
+
+  #addModal.active {
+    display: block;
+  }
+
+  #addModal input,
+  #addModal select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+
+  .btn {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out;
+  }
+
+  .btn:hover {
+    background-color: #004999;
+  }
+</style>
+<body>
+
+  <aside class="sidebar">
+    <h2>PTT ERP</h2>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="procurement.html">Inventory</a>
+      <a href="financials.html">Financials</a>
+      <a href="report.html">report</a>
+      <a class="active" href="Financials.html">Financials</a>
+    </nav>
+  </aside>
+
+  <div class="main">
+    <div class="header">
+      <h1> ข้อมูลการเงิน (Financials)</h1>
+      <button class="btn" onclick="openAddModal()">+ เพิ่มรายการ</button>
+    </div>
+
+    <div class="card-container">
+      <div class="card">
+        <h3>รายรับเดือนนี้</h3>
+        <div class="value">฿1,200,000</div>
+      </div>
+      <div class="card">
+        <h3>รายจ่ายเดือนนี้</h3>
+        <div class="value">฿950,000</div>
+      </div>
+      <div class="card">
+        <h3>กำไรสุทธิ</h3>
+        <div class="value">฿250,000</div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <h2>📄 รายการธุรกรรมล่าสุด</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>รายการ</th>
+            <th>ประเภท</th>
+            <th>จำนวน</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="txnTable">
+          <!-- Rows injected dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal เพิ่มรายการ -->
+  <div id="addModal">
+    <h3>เพิ่มรายการใหม่</h3>
+    <input type="date" id="txnDate" required>
+    <input type="text" id="txnDesc" placeholder="รายการ" required>
+    <select id="txnType">
+      <option value="">เลือกประเภท</option>
+      <option value="รายรับ">รายรับ</option>
+      <option value="รายจ่าย">รายจ่าย</option>
+    </select>
+    <input type="number" id="txnAmount" placeholder="จำนวนเงิน" required>
+    <button class="btn" onclick="saveTxn()">บันทึก</button>
+    <button class="btn" onclick="closeAddModal()">ยกเลิก</button>
+  </div>
+
+  <script>
+    let txnList = [];
+
+    window.onload = function () {
+      const saved = localStorage.getItem("txnList");
+      if (saved) {
+        txnList = JSON.parse(saved);
+        txnList.forEach(renderTxn);
+      }
+    };
+
+    function openAddModal() {
+      document.getElementById("addModal").classList.add("active");
+    }
+
+    function closeAddModal() {
+      document.getElementById("addModal").classList.remove("active");
+    }
+
+    function saveTxn() {
+      const date = document.getElementById("txnDate").value;
+      const desc = document.getElementById("txnDesc").value;
+      const type = document.getElementById("txnType").value;
+      const amount = parseFloat(document.getElementById("txnAmount").value);
+
+      if (!date || !desc || !type || isNaN(amount)) {
+        alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+        return;
+      }
+
+      const txn = { date, desc, type, amount };
+      txnList.unshift(txn);
+      localStorage.setItem("txnList", JSON.stringify(txnList));
+      renderTxn(txn);
+      closeAddModal();
+    }
+
+    function renderTxn(txn) {
+      const tbody = document.getElementById("txnTable");
+      const tr = document.createElement("tr");
+      const sign = txn.type === "รายรับ" ? "+" : "-";
+
+      const dateFormat = new Date(txn.date).toLocaleDateString("th-TH", { day: 'numeric', month: 'short', year: 'numeric' });
+
+      tr.innerHTML = `
+        <td>${dateFormat}</td>
+        <td>${txn.desc}</td>
+        <td>${txn.type}</td>
+        <td>${sign}฿${txn.amount.toLocaleString()}</td>
+        <td><button class="btn" onclick="this.closest('tr').remove()">ลบ</button></td>
+      `;
+      tbody.prepend(tr);
+    }
+  </script>
+
+</body>
+</html>
